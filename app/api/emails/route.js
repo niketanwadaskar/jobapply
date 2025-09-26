@@ -5,14 +5,7 @@ import EmailFilter from '../../../lib/emailFilter';
 const db = new Database();
 
 export async function POST(request) {
-  try {
-    // Log environment variables
-    console.log('=== EMAIL ADD API - Environment Check ===');
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASS set:', !!process.env.EMAIL_PASS);
-    console.log('EMAIL_PASS length:', process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0);
-    console.log('==========================================');
-    
+  try {    
     const { emails } = await request.json();
     
     if (!emails || !Array.isArray(emails)) {

@@ -6,17 +6,8 @@ const db = new Database();
 const emailService = new EmailService();
 
 export async function POST(request) {
-  try {
-    // Log environment variables
-    console.log('=== EMAIL SEND API - Environment Check ===');
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASS set:', !!process.env.EMAIL_PASS);
-    console.log('EMAIL_PASS length:', process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0);
-    console.log('==========================================');
-    
+  try {    
     const { emails, cvPath } = await request.json();
-    
-    console.log('Received request:', { emails: emails?.length, cvPath });
     
     if (!emails || !Array.isArray(emails)) {
       return NextResponse.json(
@@ -31,8 +22,6 @@ export async function POST(request) {
       email: email.email?.replace(/^"(.*)"$/, '$1').trim() || email.email
     }));
 
-    console.log('Cleaned emails:', cleanedEmails);
-
     // Verify email service connection
     const connectionTest = await emailService.verifyConnection();
     if (!connectionTest.success) {
@@ -45,8 +34,6 @@ export async function POST(request) {
 
     // Send emails
     const results = await emailService.sendBulkEmails(cleanedEmails, cvPath);
-    
-    console.log('Email sending results:', results);
     
     // Update database with successful sends
     const successfulSends = results.filter(result => result.success);

@@ -3,11 +3,6 @@ import EmailService from '../../../lib/emailService';
 
 export async function GET(request) {
   try {
-    console.log('Environment variables check:');
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASS set:', !!process.env.EMAIL_PASS);
-    console.log('EMAIL_PASS length:', process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0);
-    
     const emailService = new EmailService();
     
     // Test email configuration
