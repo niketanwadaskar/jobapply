@@ -14,8 +14,6 @@ export default function EmailSender({ applications, onApplicationsChange }) {
   const [countFilter, setCountFilter] = useState('all'); // all, 0, 1, 2+
   const [excludeHrReplied, setExcludeHrReplied] = useState(true); // Filter out HR replied emails
   const [nameFilter, setNameFilter] = useState('all'); // all, has_name, no_name
-  const [batchSize, setBatchSize] = useState(5); // Number of emails to send per batch
-  const [delayBetweenBatches, setDelayBetweenBatches] = useState(30); // Delay in seconds between batches
   const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0, batch: 0, totalBatches: 0 });
 
   const filteredApplications = useMemo(() => {
@@ -101,33 +99,27 @@ export default function EmailSender({ applications, onApplicationsChange }) {
         email: app.email.replace(/^"(.*)"$/, '$1') // Remove extra quotes
       }));
 
-      // Split emails into batches
-      const batches = [];
-      for (let i = 0; i < emailsToSend.length; i += batchSize) {
-        batches.push(emailsToSend.slice(i, i + batchSize));
-      }
-
       setSendingProgress({
         current: 0,
         total: emailsToSend.length,
         batch: 0,
-        totalBatches: batches.length
+        totalBatches: 0
       });
 
       let totalSent = 0;
       let totalFailed = 0;
       const failedEmails = [];
 
-      // Process each batch
-      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-        const batch = batches[batchIndex];
+      // Process each email individually with random delays
+      for (let emailIndex = 0; emailIndex < emailsToSend.length; emailIndex++) {
+        const emailData = emailsToSend[emailIndex];
         
         setSendingProgress(prev => ({
           ...prev,
-          batch: batchIndex + 1
+          current: emailIndex
         }));
 
-        setMessage(`📤 Sending batch ${batchIndex + 1}/${batches.length} (${batch.length} emails)...`);
+        setMessage(`📤 Sending email ${emailIndex + 1}/${emailsToSend.length} to ${emailData.email}...`);
 
         try {
           const response = await fetch('/api/emails/send', {
@@ -136,7 +128,7 @@ export default function EmailSender({ applications, onApplicationsChange }) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-              emails: batch,
+              emails: [emailData], // Send one email at a time
               cvPath: cvPath || null
             }),
           });
@@ -146,9 +138,9 @@ export default function EmailSender({ applications, onApplicationsChange }) {
             data = await response.json();
           } catch (jsonError) {
             console.error('JSON parsing error:', jsonError);
-            setMessage(`❌ Server returned invalid response for batch ${batchIndex + 1}. Status: ${response.status}`);
-            totalFailed += batch.length;
-            failedEmails.push(...batch.map(app => app.email));
+            setMessage(`❌ Server returned invalid response for email ${emailIndex + 1}. Status: ${response.status}`);
+            totalFailed += 1;
+            failedEmails.push(emailData.email);
             continue;
           }
 
@@ -159,27 +151,28 @@ export default function EmailSender({ applications, onApplicationsChange }) {
               failedEmails.push(...data.failedEmails);
             }
           } else {
-            setMessage(`❌ Error in batch ${batchIndex + 1}: ${data.error || 'Unknown error occurred'}`);
-            totalFailed += batch.length;
-            failedEmails.push(...batch.map(app => app.email));
+            setMessage(`❌ Error sending email ${emailIndex + 1}: ${data.error || 'Unknown error occurred'}`);
+            totalFailed += 1;
+            failedEmails.push(emailData.email);
           }
 
           setSendingProgress(prev => ({
             ...prev,
-            current: prev.current + batch.length
+            current: emailIndex + 1
           }));
 
         } catch (error) {
-          console.error(`Error sending batch ${batchIndex + 1}:`, error);
-          setMessage(`❌ Error sending batch ${batchIndex + 1}: ${error.message}`);
-          totalFailed += batch.length;
-          failedEmails.push(...batch.map(app => app.email));
+          console.error(`Error sending email ${emailIndex + 1}:`, error);
+          setMessage(`❌ Error sending email ${emailIndex + 1}: ${error.message}`);
+          totalFailed += 1;
+          failedEmails.push(emailData.email);
         }
 
-        // Add delay between batches (except for the last batch)
-        if (batchIndex < batches.length - 1) {
-          setMessage(`⏳ Waiting ${delayBetweenBatches} seconds before next batch...`);
-          await new Promise(resolve => setTimeout(resolve, delayBetweenBatches * 1000));
+        // Add random delay between emails (except for the last email)
+        if (emailIndex < emailsToSend.length - 1) {
+          const randomDelay = Math.floor(Math.random() * (100 - 10 + 1)) + 10; // Random between 10-100 seconds
+          setMessage(`⏳ Waiting ${randomDelay} seconds before next email...`);
+          await new Promise(resolve => setTimeout(resolve, randomDelay * 1000));
         }
       }
 
@@ -187,7 +180,7 @@ export default function EmailSender({ applications, onApplicationsChange }) {
       if (totalFailed === 0) {
         setMessage(`✅ All emails sent successfully! Sent: ${totalSent}, Failed: ${totalFailed}`);
       } else {
-        setMessage(`⚠️ Batch sending completed. Sent: ${totalSent}, Failed: ${totalFailed}. Failed emails: ${failedEmails.join(', ')}`);
+        setMessage(`⚠️ Email sending completed. Sent: ${totalSent}, Failed: ${totalFailed}. Failed emails: ${failedEmails.join(', ')}`);
       }
 
       setSelectedEmails([]);
@@ -236,50 +229,28 @@ export default function EmailSender({ applications, onApplicationsChange }) {
             </p>
           </div>
 
-          {/* Batch Configuration */}
+          {/* Email Safety Configuration */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
             <h3 className="text-sm font-medium text-yellow-800 mb-3">⚠️ Gmail Safety Settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-yellow-700 mb-1">
-                  Batch Size (emails per batch)
-                </label>
-                <select
-                  value={batchSize}
-                  onChange={(e) => setBatchSize(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 text-black border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                >
-                  <option value={3}>3 emails (Safest)</option>
-                  <option value={5}>5 emails (Recommended)</option>
-                  <option value={10}>10 emails (Moderate)</option>
-                  <option value={15}>15 emails (Risky)</option>
-                </select>
-                <p className="text-xs text-yellow-600 mt-1">
-                  Smaller batches = safer for Gmail
-                </p>
+            <div className="text-xs text-yellow-700 space-y-2">
+              <div className="flex items-start space-x-2">
+                <span className="text-yellow-600 font-bold">•</span>
+                <div>
+                  <strong>Random Delays:</strong> Each email will have a random delay between 10-100 seconds before sending the next one
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-yellow-700 mb-1">
-                  Delay Between Batches (seconds)
-                </label>
-                <select
-                  value={delayBetweenBatches}
-                  onChange={(e) => setDelayBetweenBatches(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 text-black border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                >
-                  <option value={15}>15 seconds (Fast)</option>
-                  <option value={30}>30 seconds (Recommended)</option>
-                  <option value={60}>1 minute (Safe)</option>
-                  <option value={120}>2 minutes (Very Safe)</option>
-                </select>
-                <p className="text-xs text-yellow-600 mt-1">
-                  Longer delays = less likely to be blocked
-                </p>
+              <div className="flex items-start space-x-2">
+                <span className="text-yellow-600 font-bold">•</span>
+                <div>
+                  <strong>Gmail Limits:</strong> Free accounts: ~100 emails/day, ~500 emails/day for paid accounts
+                </div>
               </div>
-            </div>
-            <div className="mt-3 text-xs text-yellow-700">
-              <p><strong>Gmail Limits:</strong> Free accounts: ~100 emails/day, ~500 emails/day for paid accounts</p>
-              <p><strong>Tip:</strong> Start with small batches and gradually increase if no issues occur</p>
+              <div className="flex items-start space-x-2">
+                <span className="text-yellow-600 font-bold">•</span>
+                <div>
+                  <strong>Safety:</strong> Random delays help avoid spam detection and rate limiting
+                </div>
+              </div>
             </div>
           </div>
 
@@ -344,7 +315,7 @@ export default function EmailSender({ applications, onApplicationsChange }) {
               >
                 {sending 
                   ? `Sending... (${sendingProgress.current}/${sendingProgress.total})` 
-                  : `Send to ${selectedEmails.length} emails (${Math.ceil(selectedEmails.length / batchSize)} batches)`
+                  : `Send to ${selectedEmails.length} emails`
                 }
               </button>
             </div>
@@ -460,10 +431,10 @@ export default function EmailSender({ applications, onApplicationsChange }) {
             <div className="bg-blue-50 p-4 rounded-md">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-blue-700">
-                  Batch {sendingProgress.batch} of {sendingProgress.totalBatches}
+                  Email {sendingProgress.current} of {sendingProgress.total}
                 </span>
                 <span className="text-sm text-blue-600">
-                  {sendingProgress.current} / {sendingProgress.total} emails
+                  {Math.round((sendingProgress.current / sendingProgress.total) * 100)}% Complete
                 </span>
               </div>
               <div className="w-full bg-blue-200 rounded-full h-2">
@@ -473,9 +444,7 @@ export default function EmailSender({ applications, onApplicationsChange }) {
                 ></div>
               </div>
               <div className="mt-2 text-xs text-blue-600">
-                {sendingProgress.totalBatches > 1 && (
-                  <span>Next batch in {delayBetweenBatches} seconds...</span>
-                )}
+                Random delay between emails: 10-100 seconds
               </div>
             </div>
           </div>
