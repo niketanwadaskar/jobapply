@@ -219,11 +219,11 @@ export default function EmailSender({ applications, onApplicationsChange }) {
               type="text"
               value={cvPath}
               onChange={(e) => setCvPath(e.target.value)}
-              placeholder="Leave empty to use default CV: Prashant cv new.pdf"
+              placeholder="Leave empty to use default CV: Prashant cv.pdf"
               className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <p className="text-sm text-gray-500 mt-1">
-              <span className="text-green-600 font-medium">✓ CV will be automatically attached:</span> Prashant cv new.pdf
+              <span className="text-green-600 font-medium">✓ CV will be automatically attached:</span> Prashant cv.pdf
               <br />
               <span className="text-blue-600 font-medium">Note:</span> CV is automatically attached from public folder. Leave empty to use default.
             </p>
@@ -600,7 +600,7 @@ export default function EmailSender({ applications, onApplicationsChange }) {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Attachments:</label>
                   <p className="text-sm text-gray-900">
-                    📎 CV: Prashant cv new.pdf (automatically attached)
+                    📎 CV: Prashant cv.pdf (automatically attached)
                   </p>
                  
                 </div>

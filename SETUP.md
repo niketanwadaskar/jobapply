@@ -96,7 +96,7 @@ The system uses this email template:
 ```
 Dear [Name/Hiring Manager],
 
-I am excited to apply for the Frontend Developer role. With 1.5 years of experience, 
+I am excited to apply for the Frontend Developer role. With 2 years of experience, 
 I have worked with React.js, Next.js, Tailwind CSS, Material UI, Redux, JavaScript (ES6+), HTML5, 
 and CSS3, along with proficiency in RESTful APIs, Git, and Node.js.
 
