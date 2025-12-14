@@ -8,6 +8,8 @@ export default function EmailManager({ applications, onApplicationsChange }) {
   const [message, setMessage] = useState("");
   const [editingEmail, setEditingEmail] = useState(null);
   const [editName, setEditName] = useState("");
+  const [editingEmailAddress, setEditingEmailAddress] = useState(null);
+  const [editEmailAddress, setEditEmailAddress] = useState("");
   const [editingCompany, setEditingCompany] = useState(null);
   const [editCompany, setEditCompany] = useState("");
   const [editingHrReply, setEditingHrReply] = useState(null);
@@ -94,6 +96,44 @@ export default function EmailManager({ applications, onApplicationsChange }) {
       }
     } catch (error) {
       console.error("Error updating company:", error);
+    }
+  };
+
+  const handleUpdateEmailAddress = async (oldEmail, newEmail) => {
+    if (!newEmail || !newEmail.trim()) {
+      alert("Email address cannot be empty");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      alert("Invalid email format");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/emails/${encodeURIComponent(oldEmail)}/update-email`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newEmail: newEmail.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onApplicationsChange();
+        setEditingEmailAddress(null);
+        setEditEmailAddress("");
+        setMessage(`✅ Email address updated successfully from ${oldEmail} to ${newEmail.trim()}`);
+      } else {
+        setMessage(`❌ Error: ${data.error || 'Failed to update email address'}`);
+      }
+    } catch (error) {
+      console.error("Error updating email address:", error);
+      setMessage(`❌ Error: ${error.message}`);
     }
   };
 
@@ -481,7 +521,54 @@ export default function EmailManager({ applications, onApplicationsChange }) {
               {filteredApplications.map((app) => (
                 <tr key={app.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {app.email}
+                    {editingEmailAddress === app.email ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="email"
+                          value={editEmailAddress}
+                          onChange={(e) => setEditEmailAddress(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleUpdateEmailAddress(app.email, editEmailAddress);
+                            } else if (e.key === "Escape") {
+                              setEditingEmailAddress(null);
+                              setEditEmailAddress("");
+                            }
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black w-full"
+                          placeholder="Enter email address"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleUpdateEmailAddress(app.email, editEmailAddress)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingEmailAddress(null);
+                            setEditEmailAddress("");
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>{app.email}</span>
+                        <button
+                          onClick={() => {
+                            setEditingEmailAddress(app.email);
+                            setEditEmailAddress(app.email);
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {editingEmail === app.email ? (
