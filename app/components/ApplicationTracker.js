@@ -58,6 +58,7 @@ export default function ApplicationTracker({ applications, onApplicationsChange 
       filtered = filtered.filter(app => 
         app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (app.name && app.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (app.company && app.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (app.hrReplyNotes && app.hrReplyNotes.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -270,6 +271,9 @@ export default function ApplicationTracker({ applications, onApplicationsChange 
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -297,6 +301,9 @@ export default function ApplicationTracker({ applications, onApplicationsChange 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {app.name || 'Not set'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {app.company || 'Not set'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

@@ -6,10 +6,14 @@ const db = new Database();
 export async function PUT(request, { params }) {
   try {
     const { email } = params;
-    const { name, isApplied, hrReplied, hrReplyNotes } = await request.json();
+    const { name, company, isApplied, hrReplied, hrReplyNotes } = await request.json();
     
     if (name !== undefined) {
       await db.updateEmailName(email, name);
+    }
+    
+    if (company !== undefined) {
+      await db.updateCompany(email, company);
     }
     
     if (isApplied !== undefined) {

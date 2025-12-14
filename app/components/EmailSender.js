@@ -51,7 +51,8 @@ export default function EmailSender({ applications, onApplicationsChange }) {
     if (searchTerm) {
       filtered = filtered.filter(app => 
         app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (app.name && app.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (app.name && app.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (app.company && app.company.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -195,12 +196,19 @@ export default function EmailSender({ applications, onApplicationsChange }) {
   };
 
   const generatePreview = (emailData) => {
-    const greeting = emailData.name ? `Dear ${emailData.name},` : 'Dear Hiring Manager,';
+    const company = emailData.company || 'your company';
+    const recipientName = emailData.name && emailData.name.trim() !== '' 
+      ? emailData.name.charAt(0).toUpperCase() + emailData.name.slice(1).toLowerCase()
+      : null;
+    const greeting = recipientName ? `Dear ${recipientName},` : 'Dear Hiring Manager,';
     console.log(emailData,"emailData")
     return {
-      subject: 'Application for Frontend Developer Position',
+      subject: `Application for Frontend Developer – ${company}`,
       greeting,
-      htmlBody: generatePreviewTemplate({name:emailData.name})
+      htmlBody: generatePreviewTemplate({
+        name: emailData.name,
+        company: company
+      })
     };
   };
 
@@ -469,6 +477,9 @@ export default function EmailSender({ applications, onApplicationsChange }) {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -507,6 +518,9 @@ export default function EmailSender({ applications, onApplicationsChange }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {app.name || 'Not set'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {app.company || 'Not set'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

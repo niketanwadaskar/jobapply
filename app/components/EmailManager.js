@@ -8,6 +8,8 @@ export default function EmailManager({ applications, onApplicationsChange }) {
   const [message, setMessage] = useState("");
   const [editingEmail, setEditingEmail] = useState(null);
   const [editName, setEditName] = useState("");
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [editCompany, setEditCompany] = useState("");
   const [editingHrReply, setEditingHrReply] = useState(null);
   const [editHrReplyNotes, setEditHrReplyNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,6 +74,26 @@ export default function EmailManager({ applications, onApplicationsChange }) {
       }
     } catch (error) {
       console.error("Error updating name:", error);
+    }
+  };
+
+  const handleUpdateCompany = async (email, newCompany) => {
+    try {
+      const response = await fetch(`/api/emails/${encodeURIComponent(email)}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ company: newCompany }),
+      });
+
+      if (response.ok) {
+        onApplicationsChange();
+        setEditingCompany(null);
+        setEditCompany("");
+      }
+    } catch (error) {
+      console.error("Error updating company:", error);
     }
   };
 
@@ -200,6 +222,8 @@ export default function EmailManager({ applications, onApplicationsChange }) {
           app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (app.name &&
             app.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (app.company &&
+            app.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (app.hrReplyNotes &&
             app.hrReplyNotes.toLowerCase().includes(searchTerm.toLowerCase()))
       );
@@ -434,6 +458,9 @@ export default function EmailManager({ applications, onApplicationsChange }) {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
@@ -498,6 +525,56 @@ export default function EmailManager({ applications, onApplicationsChange }) {
                           onClick={() => {
                             setEditingEmail(app.email);
                             setEditName(app.name || "");
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {editingCompany === app.email ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={editCompany}
+                          onChange={(e) => setEditCompany(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleUpdateCompany(app.email, editCompany);
+                            } else if (e.key === "Escape") {
+                              setEditingCompany(null);
+                              setEditCompany("");
+                            }
+                          }}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm text-black"
+                          placeholder="Enter company name"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleUpdateCompany(app.email, editCompany)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingCompany(null);
+                            setEditCompany("");
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>{app.company || "Not set"}</span>
+                        <button
+                          onClick={() => {
+                            setEditingCompany(app.email);
+                            setEditCompany(app.company || "");
                           }}
                           className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
                         >
