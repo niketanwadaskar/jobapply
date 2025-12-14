@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Database from '../../../../../../lib/database';
+import Database from '../../../../../lib/database';
 
 const db = new Database();
 
