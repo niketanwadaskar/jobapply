@@ -196,11 +196,11 @@ export default function EmailSender({ applications, onApplicationsChange }) {
 
   const generatePreview = (emailData) => {
     const greeting = emailData.name ? `Dear ${emailData.name},` : 'Dear Hiring Manager,';
-    
+    console.log(emailData,"emailData")
     return {
       subject: 'Application for Frontend Developer Position',
       greeting,
-      htmlBody: generatePreviewTemplate(emailData.name)
+      htmlBody: generatePreviewTemplate({name:emailData.name})
     };
   };
 
@@ -219,11 +219,11 @@ export default function EmailSender({ applications, onApplicationsChange }) {
               type="text"
               value={cvPath}
               onChange={(e) => setCvPath(e.target.value)}
-              placeholder="Leave empty to use default CV: Prashant cv.pdf"
+              placeholder="Leave empty to use default CV: Niketan-Wadaskar-Resume"
               className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <p className="text-sm text-gray-500 mt-1">
-              <span className="text-green-600 font-medium">✓ CV will be automatically attached:</span> Prashant cv.pdf
+              <span className="text-green-600 font-medium">✓ CV will be automatically attached:</span> Niketan-Wadaskar-Resume
               <br />
               <span className="text-blue-600 font-medium">Note:</span> CV is automatically attached from public folder. Leave empty to use default.
             </p>
@@ -594,13 +594,13 @@ export default function EmailSender({ applications, onApplicationsChange }) {
                       className="text-sm text-gray-900"
                       dangerouslySetInnerHTML={{ __html: generatePreview(previewEmail).htmlBody }}
                     />
-                  </div>
+                  </div>w
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Attachments:</label>
                   <p className="text-sm text-gray-900">
-                    📎 CV: Prashant cv.pdf (automatically attached)
+                    📎 CV: Niketan-Wadaskar-Resume (automatically attached)
                   </p>
                  
                 </div>
